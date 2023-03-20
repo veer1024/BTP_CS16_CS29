@@ -36,20 +36,4 @@ def decrypt_AES_GCM(file_name, secretKey):
           f = open(file_name,'a')
           f.write(plaintext.decode('utf-8'))
           f.close()
-# mode backup GCM
 
-"""
-secretKey = os.urandom(32)  # 256-bit random encryption key
-print("Encryption key:", binascii.hexlify(secretKey))
-
-msg = b'Message for AES-256-GCM + Scrypt encryption'
-encryptedMsg = encrypt_AES_GCM(msg, secretKey)
-print("encryptedMsg", {
-    'ciphertext': binascii.hexlify(encryptedMsg[0]),
-    'aesIV': binascii.hexlify(encryptedMsg[1]),
-    'authTag': binascii.hexlify(encryptedMsg[2])
-})
-
-decryptedMsg = decrypt_AES_GCM(encryptedMsg, secretKey)
-print("decryptedMsg", decryptedMsg)
-"""

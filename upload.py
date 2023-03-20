@@ -1,5 +1,4 @@
 import boto3
-import creds
 from botocore.exceptions import NoCredentialsError
 import os
 f=open('keys.txt','r')

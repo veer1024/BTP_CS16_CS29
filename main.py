@@ -2,16 +2,16 @@ import os
 from cryptography.hazmat.backends import default_backend  
 from cryptography.hazmat.primitives import serialization  
 from cryptography.hazmat.primitives.asymmetric import rsa  
-import creds as c
 import argparse
 import rsa
 import time
 import files
-import key
 import aes_encrypt
 import upload
 import pyfiglet
 import download
+import crc32
+import integrity_check
 #import setup
 parser = argparse.ArgumentParser()
 parser.add_argument("-c","--chunk_name",help="chunk of the file to encrypt...")
@@ -39,7 +39,10 @@ def find_files(filename, search_path):
          result.append(os.path.join(root, filename))
    return result
 
-
+def integrity_check_begin():
+    print("Enter the name of file to check integrity: ")
+    filename = str(input())
+    integrity_check.integrity_checker(filename.split('.')[0])
 def upload_begin():
    files.split()
    filename = files.inp.split(".")[0]
@@ -48,6 +51,7 @@ def upload_begin():
     lines = len(fp.readlines())-1
    #print("Enter the file name without extension that you splited : ")
    #filen=input()
+   os.system('rm -rf ./chunks/manifest')
    filen = filename
    os.mkdir(filen+"_chunks")
    for i in range(lines):
@@ -63,10 +67,18 @@ def upload_begin():
    # encMessage is in bytes, so won't concate with string
    print("THIS IS THE ENCRYPTED MESSAGE: ")
    print(encMessage)
+   ## generating crc32 hashes for all the chunks
+   crc32.generating_hashes(filen)
    ## uploading to cloud
+   
    print("=========================================> uploading ===================>")
    upload.upload_to_aws(filen+'_chunks')
    print("===========> UPLOAD DONE!")
+   print("===========> Cleaning")
+   os.system('rm -rf '+filen+'_chunks')
+   os.system('rm -rf chunks')
+   os.system('mv '+filen+'.txt ./record_'+filen+'/')
+   print("cleaning done!")
    
 def download_begin():
    print("Enter the name of file to download: ")
@@ -78,37 +90,9 @@ def download_begin():
    aes_encrypt.decrypt_AES_GCM(file_name,keys[0])
    print("FILE IS "+file_name)
    print("File is ready for editing")
+   os.system('rm -rf '+folder_name)
    
-"""
-if __name__ == "__main__":
-   #private,public = get_keys()
-   #print(private,public)
-   K = keys[0]
-   with open(r"./chunks/manifest", 'r') as fp:
-    lines = len(fp.readlines())-1
-   #print("Enter the file name without extension that you splited : ")
-   #filen=input()
-   filen = filename
-   os.mkdir("enc_chunks")
-   for i in range(lines):
-    chunk='enc-'+filen+'_'+str(i+1)+'.txt'
-    starttime = time.time()
-    encMessage = aes_encrypt.encrypt_AES_GCM('./chunks/'+chunk,K)
-    endtime = time.time()
-    print("encryption time: ",str(endtime - starttime))
-    f = open(r'./enc_chunks/'+chunk,'w')
-    f.write(str(encMessage))
-    #print(encMessage)
-    f.close()
-   # encMessage is in bytes, so won't concate with string
-   print("THIS IS THE ENCRYPTED MESSAGE: ")
-   print(encMessage)
-   ## uploading to cloud
-   print("=========================================> uploading ===================>")
-   upload.upload_to_aws('enc_chunks')
-   print("===========> UPLOAD DONE!")
-   """
-   
+  
 ascii_banner=pyfiglet.figlet_format("Welcome !!!")
 print(ascii_banner.center(100))
 print('---------------------------------------------------------------------------------------\n')
@@ -139,6 +123,8 @@ while True:
         upload_begin()
     elif choice==2:
         download_begin()
+    elif choice==3:
+        integrity_check_begin()
     elif choice==5:
         print('BYE BYE !!!')
         break

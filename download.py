@@ -32,7 +32,18 @@ def download_directory(bucket_name, s3_folder_name):
             print(f"Moved File to {dest_path}")
         else:
             print(f"Skipping {out_name}")
-    print("DOWNLOAD DONE!")     
+    print("DOWNLOAD DONE!")
+def download_file(bucket_name,filename,aws_folder):
+   s3_resource = session.resource('s3')
+   bucket = s3_resource.Bucket(bucket_name)
+   try:
+     print(filename)
+     bucket.download_file(aws_folder+'/'+filename,filename)
+   except:
+     if e.response['Error']['Code'] == "404":
+        print("The object does not exist.")
+     else:
+        raise     
 
 
 #download_directory("enc-files", "testing_chunks")
